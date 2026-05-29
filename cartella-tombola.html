@@ -1,0 +1,391 @@
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <style>
+      body {
+        font-family: "Libre Bodoni", serif;
+        font-size: 16px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 10px;
+      }
+
+      .cartella {
+        border: 7px solid red;
+        font-size: 2rem;
+        text-align: center;
+        border-radius: 5px;
+        box-shadow: 1px 1px 5px LightGray;
+        background-color: #f5f1e4;
+      }
+      .cartella-header {
+        margin: 0.1rem;
+        padding: 1rem;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        border: 6px solid red;
+        border-radius: 5px;
+        background-color: inherit;
+        opacity: 1;
+      }
+
+      .cartella-header input {
+        text-align: center;
+        font-style: italic;
+        border: none;
+        font-family: inherit;
+        font-size: inherit;
+        background-color: inherit;
+        width: 100%; /* Forza l'input a coprire tutta la larghezza del box bianco */
+      }
+
+      .cartella-griglia {
+        margin: 0.1rem;
+        display: grid;
+        grid-template-columns: repeat(9, 1fr);
+        grid-template-rows: repeat(3, 1fr);
+        font-size: 3rem;
+        border: 3px solid red;
+      }
+
+      .cartella-griglia > div {
+        border: 3px solid red;
+        min-height: 80px;
+        aspect-ratio: 1 / 1.3;
+        padding: 2px;
+        display: flex;
+        justify-content: center;
+        align-items: flex-end;
+      }
+
+      .riga-centrata {
+        display: flex;
+        flex-direction: column;
+        align-items: center; /* centra orizzontalmente */
+        justify-content: center;
+      }
+
+      .numeri {
+        gap: 10px;
+        text-align: center;
+        background-color: inherit;
+      }
+
+      .scelta-numeri {
+        display: flex;
+        align-items: center;
+      }
+
+      .numeri > div {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        border-radius: 45px;
+        aspect-ratio: 1 / 1;
+        border-style: solid;
+        border-width: 1px;
+        border-color: silver;
+        box-shadow: 1px 1px 5px gray;
+
+        min-width: 80px;
+        background-color: inherit;
+      }
+
+      .numeri > .giocato {
+        border-color: red;
+        color: red;
+        border-width: 5px;
+        background-color: #f5f1e4;
+        box-shadow:
+          inset 0 2px 4px rgba(0, 0, 0, 0.2),
+          /* ombra interna */ inset 0 -2px 3px rgba(255, 255, 255, 0.6); /* luce interna */
+      }
+
+      .numeri input {
+        text-align: center;
+        border: none;
+        color: inherit;
+        font-family: inherit;
+        font-size: 2em;
+        font-style: italic;
+        font-weight: bold;
+        background-color: inherit;
+        width: 75%;
+      }
+    </style>
+  </head>
+  <body>
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Libre+Bodoni:wght@400;700&display=swap"
+    />
+    <fieldset>
+      <legend>Scegli i tuoi numeri</legend>
+      <div class="scelta-numeri numeri">
+        <div><input id="n_0" size="2" /></div>
+        <div><input id="n_1" size="2" /></div>
+        <div><input id="n_2" size="2" /></div>
+        <div><input id="n_3" size="2" /></div>
+        <div><input id="n_4" size="2" /></div>
+        <div><input id="n_5" size="2" /></div>
+        <div><input id="n_6" size="2" /></div>
+        <div><input id="n_7" size="2" /></div>
+        <div><input id="n_8" size="2" /></div>
+        <div><input id="n_9" size="2" /></div>
+        <div><input id="n_10" size="2" /></div>
+        <div><input id="n_11" size="2" /></div>
+        <div><input id="n_12" size="2" /></div>
+        <div><input id="n_13" size="2" /></div>
+        <div><input id="n_14" size="2" /></div>
+      </div>
+    </fieldset>
+    <div><button id="numeri_casuali">disponi i numeri nella cartella</button></div>
+    <div class="cartella">
+      <div class="cartella-header">
+        <input id="cartiglio" placeholder="Il tuo nome" />
+      </div>
+      <div class="cartella-griglia">
+        <div id="00"></div>
+        <div id="01"></div>
+        <div id="02"></div>
+        <div id="03"></div>
+        <div id="04"></div>
+        <div id="05"></div>
+        <div id="06"></div>
+        <div id="07"></div>
+        <div id="08"></div>
+
+        <div id="10"></div>
+        <div id="11"></div>
+        <div id="12"></div>
+        <div id="13"></div>
+        <div id="14"></div>
+        <div id="15"></div>
+        <div id="16"></div>
+        <div id="17"></div>
+        <div id="18"></div>
+
+        <div id="20"></div>
+        <div id="21"></div>
+        <div id="22"></div>
+        <div id="23"></div>
+        <div id="24"></div>
+        <div id="25"></div>
+        <div id="26"></div>
+        <div id="27"></div>
+        <div id="28"></div>
+      </div>
+    </div>
+    <button id="invia_cartella">Gioca la cartella</button>
+    <script>
+      document.addEventListener("DOMContentLoaded", function () {
+        document.getElementById("numeri_casuali").addEventListener("click", completa_cartella);
+        document.getElementById("invia_cartella").addEventListener("click", inviaCartella);
+      });
+      document.querySelectorAll(".numeri input").forEach((input) => {
+        const parentDiv = input.parentElement;
+
+        function checkValue() {
+          if (input.value.trim() !== "") {
+            parentDiv.classList.add("giocato");
+          } else {
+            parentDiv.classList.remove("giocato");
+          }
+        }
+
+        // Controllo iniziale
+        checkValue();
+
+        // Controllo durante la digitazione
+        input.addEventListener("input", checkValue);
+      });
+      var map_cartella;
+      var contatore_riga;
+      function completa_cartella() {
+        map_cartella = {};
+        numeri = [];
+        // lettura e controllo dei numeri inseriti dal giocatore
+        mancanti = 0;
+        let haErrore = false;
+        document.querySelectorAll(".scelta-numeri input").forEach((numero, i) => {
+          if (haErrore) {
+            numeri = [];
+            return;
+          } // Salta istantaneamente tutti i successivi senza fare nulla
+          if (numero.value != "") {
+            if (isNaN(numero.value) || numero.value < 1 || numero.value > 90) {
+              alert("Il numero " + numero.value + " non è valido!");
+              haErrore = true; // Attiva il semaforo
+              numero.focus();
+              return;
+            }
+            chiave = colonna(numero.value);
+            if (!map_cartella[chiave]) {
+              map_cartella[chiave] = [];
+            }
+            if (map_cartella[chiave].includes(numero.value)) {
+              alert("Il numero " + numero.value + " è doppio!");
+              haErrore = true; // Attiva il semaforo
+              numero.focus();
+              return;
+            } else if (map_cartella[chiave].length == 3) {
+              alert(
+                "Non puoi inserire il numero " +
+                  numero.value +
+                  ", la colonna contiene già i numeri " +
+                  map_cartella[chiave].join(", ") +
+                  "!",
+              );
+              haErrore = true; // Attiva il semaforo
+              numero.focus();
+              return;
+            }
+            map_cartella[chiave].push(numero.value);
+            numeri.push(parseInt(numero.value));
+          } else {
+            mancanti++;
+          }
+        });
+        if (haErrore) return; // Salta successivi senza fare nulla
+        if (Object.keys(map_cartella).length + mancanti < 9) {
+          alert("Ci deve essere almeno un numero in ogni colonna della cartella!");
+          numeri = [];
+          return;
+        }
+        tutte_le_decine = false;
+        while (numeri.length < 15) {
+          let num = Math.floor(Math.random() * 90) + 1;
+          if (numero_premesso(num)) {
+            numeri.push(num);
+            chiave = colonna(num);
+            if (!map_cartella[chiave]) {
+              map_cartella[chiave] = [];
+            }
+            map_cartella[chiave].push(num);
+          }
+        }
+        // pulisco la cartella
+        var campi_da_pulire = document.querySelectorAll(".cartella-griglia div");
+        for (let campo of campi_da_pulire) {
+          campo.innerHTML = "";
+        }
+
+        contatore_riga = [
+          ["0", []],
+          ["1", []],
+          ["2", []],
+        ];
+        for (let chiave in map_cartella) {
+          let righe_scelte = scegli_righe(contatore_riga, map_cartella[chiave].length);
+          map_cartella[chiave].sort();
+          for (let i = 0; i < map_cartella[chiave].length; i++) {
+            let id = righe_scelte[i][0] + chiave;
+            campo = document.getElementById(id);
+            campo.innerHTML = map_cartella[chiave][i];
+            contatore_riga[Number(righe_scelte[i][0])][1].push(map_cartella[chiave][i]);
+          }
+        }
+      }
+      function numero_premesso(num) {
+        if (numeri.includes(num)) {
+          return false;
+        }
+        if (!tutte_le_decine) {
+          if (Object.keys(map_cartella).length === 9) {
+            tutte_le_decine = true;
+          }
+        }
+        let presenti = 0;
+        for (let i = 0; i < numeri.length; i++) {
+          if (colonna(num) == colonna(numeri[i])) {
+            if (!tutte_le_decine) {
+              // completo tutte le decine prima di permettere altri numeri nella stessa decina
+              return false;
+            }
+            presenti++;
+            if (presenti > 2) {
+              return false;
+            }
+          }
+        }
+        return true;
+      }
+
+      function colonna(num) {
+        if (num == 90) {
+          return "8";
+        } else {
+          return String(Math.floor(num / 10));
+        }
+      }
+
+      function scegli_righe(array_riga, n) {
+        return [...array_riga] // copia dell’array
+          .sort((a, b) => a[1].length - b[1].length) // ordina per indice 1
+          .slice(0, n) // prende i primi n
+          .sort((a, b) => a[0] - b[0]); // ordina per indice 0
+      }
+
+      const AIRTABLE_TOKEN =
+        "patRlCoiJk7kdrjSg.4c5eb4753eae088ff9f89028a00eeaccb9f5513c1e87b396d1ef6f349f31924f";
+      const BASE_ID = "app2o7kaTcpzSld1Z";
+      const TABLE_ID = "tblqkVkKwVVCJIvYS";
+
+      async function inviaCartella() {
+        // const btn = document.getElementById("btn");
+        // const status = document.getElementById("status");
+
+        // btn.disabled = true;
+        // btn.textContent = "⏳ Invio…";
+        // status.className = "";
+        // status.textContent = "";
+        if (!map_cartella) {
+          alert("Genera la cartella per giocare!");
+          return;
+        }
+
+        if (document.getElementById("cartiglio").value.trim() === "") {
+          alert("Inserisci il tuo nome per giocare!");
+          return;
+        }
+
+        const numeri = Object.values(contatore_riga)
+          .map((arr) => arr[1].join(",")) // unisce i numeri con ","
+          .join("|");
+
+        try {
+          const res = await fetch(`https://api.airtable.com/v0/${BASE_ID}/${TABLE_ID}`, {
+            method: "POST",
+            headers: {
+              Authorization: `Bearer ${AIRTABLE_TOKEN}`,
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              fields: {
+                Player: document.getElementById("cartiglio").value.trim(),
+                "Numbers Selected": numeri,
+                Game: "PARTITA_TEST",
+              },
+            }),
+          });
+
+          if (res.ok) {
+            const data = await res.json();
+            alert("✅ Riga inserita! ID: " + data.id);
+          } else {
+            const err = await res.json();
+            alert("❌ Errore: " + (err.error?.message || JSON.stringify(err)));
+            // status.textContent = "❌ Errore: " + (err.error?.message || JSON.stringify(err));
+          }
+        } catch (e) {
+          alert("❌ Errore di rete: " + e.message);
+        }
+
+        // btn.disabled = false;
+        // btn.textContent = "▶ Invia riga di prova";
+      }
+    </script>
+  </body>
+</html>

@@ -1,0 +1,182 @@
+<html>
+<head>
+    <meta charset="UTF-8">
+	<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Libre+Bodoni:wght@400;700&display=swap">
+	<style>
+		.oggetto_nascosto {display:none;}
+		.oggetto_invisibile {visibility: hidden;}
+		table.numeri_scelti, table.cartella {font-family:'Libre Bodoni',serif; font-size:1.5rem; padding:5px; text-align:center;border: 1px solid black; border-spacing: 5px; display: inline-block; margin:5px; opacity:0.90; background-color:white; border-radius:10px;}
+		table.numeri_scelti {border: 0px solid black; }
+		/* table.cartella td {border: 1px solid black; font-size:2rem; padding: 5px;border-radius:50px;box-shadow: 1px 1px 5px gray; min-width: 10px; background-color:inherit;} */
+		table.cartella td, table.numeri_scelti td {border: 1px solid black; padding: 5px;border-radius:50px;box-shadow: 1px 1px 5px gray; min-width: 50px; background-color:inherit;}
+		table.cartella input, table.numeri_scelti input {border: 0px solid black; font-family:'Libre Bodoni',serif; font-size:1.5rem; text-align:center; background-color:inherit; width: 100%;}
+		@keyframes bordercolor {from {border:10px solid red;} 25% {border:10px solid gold;} 50% {border:10px solid green;} 75% {border:10px solid blue;} to {border:10px solid red;}}
+		@keyframes shadowcolor {from {box-shadow: 2px 2px 2px gray;} 50% {box-shadow: 3px 3px 3px silver;} to {box-shadow: 2px 2px px gray;}}
+		@keyframes backgroundcolor {from {background-color: white;} to {background-color: red;}}
+		@keyframes tombola {from {background-image: linear-gradient(135deg, GoldenRod, gold, GoldenRod);} 33% {background-image: linear-gradient(135deg, GoldenRod, GoldenRod, gold);} 66% {background-image: linear-gradient(135deg, gold, GoldenRod, GoldenRod);} to {background-image: linear-gradient(135deg, GoldenRod, gold, GoldenRod);}}
+	</style>
+</head>
+<body>
+<div class="--contenitore" id="tabellone">
+	<button id="numeri_casuali">scegli numeri a caso</button>
+	<br />
+	<table id="numeri_scelti" class="numeri_scelti">
+		<tr id="r_numeri_scelti">
+			<td><input id="n_0" size="1"></input></td>
+			<td><input id="n_1" size="1"></input></td>
+			<td><input id="n_2" size="1"></input></td>
+			<td><input id="n_3" size="1"></input></td>
+			<td><input id="n_4" size="1"></input></td>
+			<td><input id="n_5" size="1"></input></td>
+			<td><input id="n_6" size="1"></input></td>
+			<td><input id="n_7" size="1"></input></td>
+			<td><input id="n_8" size="1"></input></td>
+			<td><input id="n_9" size="1"></input></td>
+			<td><input id="n_10" size="1"></input></td>
+			<td><input id="n_11" size="1"></input></td>
+			<td><input id="n_12" size="1"></input></td>
+			<td><input id="n_13" size="1"></input></td>
+			<td><input id="n_14" size="1"></input></td>
+		</tr>
+	</table>
+	<div >
+		<table id="cartella" class="cartella">
+			<tr>
+				<td id="td_cartiglio1" class="oggetto_invisibile">00</td>
+				<td id="td_cartiglio" colspan=7><input id="cartiglio" size="25"></input></td>
+				<td id="td_cartiglio2" class="oggetto_invisibile">00</td>
+			</tr>
+			<tr id="r0">
+        				<td id="00"></td>
+				<td id="01"></td>
+				<td id="02"></td>
+				<td id="03"></td>
+				<td id="04"></td>
+				<td id="05"></td>
+				<td id="06"></td>
+				<td id="07"></td>
+				<td id="08"></td>
+			</tr>
+			<tr id="r1">
+				<td id="10"></td>
+				<td id="11"></td>
+				<td id="12"></td>
+				<td id="13"></td>
+				<td id="14"></td>
+				<td id="15"></td>
+				<td id="16"></td>
+				<td id="17"></td>
+				<td id="18"></td>
+			</tr>
+			<tr id="r2">
+				<td id="20"></td>
+				<td id="21"></td>
+				<td id="22"></td>
+				<td id="23"></td>
+				<td id="24"></td>
+				<td id="25"></td>
+				<td id="26"></td>
+				<td id="27"></td>
+				<td id="28"></td>
+			</tr>
+		</table>
+	</div>
+</div>
+<script type="text/javascript" language="javascript"><!--
+//<![CDATA[
+	document.getElementById('numeri_casuali').addEventListener('click', numeri_casuali);
+	var numeri = [];
+	var tutte_le_decine = false;
+	function numeri_casuali() {
+		numeri = [];
+		tutte_le_decine = false;
+		while (numeri.length < 15) {
+			let num = Math.floor(Math.random() * 90) + 1;
+			if (numero_premesso(num)) {
+				numeri.push(num);
+			}
+		}
+		let map_cartella = {};
+		for (let i = 0; i < numeri.length; i++) {
+			chiave = colonna(numeri[i]);
+			if (!map_cartella[chiave]) {
+		        map_cartella[chiave] = [];
+		    }
+			map_cartella[chiave].push(numeri[i]);
+		}
+		// pulisco la cartella
+		var campi_da_pulire = document.getElementById('cartella').querySelectorAll('input');
+		for (let campo of campi_da_pulire) {
+			if (campo.id != "cartiglio") {
+				campo.value = "";
+			}
+		}
+		campi_da_pulire = document.getElementById('cartella').querySelectorAll('td');
+		for (let campo of campi_da_pulire) {
+			if (campo.id.slice(0,12) != "td_cartiglio") {
+				campo.innerHTML = "";
+			}
+		}
+
+		let riga_inizio = 0;
+		let contatore_riga = [["0",0], ["1",0], ["2",0]];
+		for (let chiave in map_cartella) {
+			let righe_scelte = scegli_righe(contatore_riga, map_cartella[chiave].length);
+			map_cartella[chiave].sort();
+			for (let i = 0; i < map_cartella[chiave].length; i++) {
+				let id = righe_scelte[i][0]+chiave;
+				campo = document.getElementById(id);
+				if (campo.tagName == "TD") {
+					// se è una TD la riempio direttamente
+					campo.innerHTML = map_cartella[chiave][i];
+				} else {
+					document.getElementById(id).value = map_cartella[chiave][i];
+				}
+				contatore_riga[Number(righe_scelte[i][0])][1]++;
+			}
+		}
+	}
+	function numero_premesso(num) {
+		if (numeri.includes(num)) {
+			return false;
+		}
+		if (!tutte_le_decine) {
+			if (numeri.length >= 9) {
+				tutte_le_decine = true;
+			}
+		}
+		let presenti = 0
+		for (let i = 0; i < numeri.length; i++) {
+			if (colonna(num) == colonna(numeri[i])) {
+				if (!tutte_le_decine) {
+					// completo tutte le decine prima di permettere altri numeri nella stessa decina
+					return false;
+				}
+				presenti++;
+				if (presenti > 2) {
+					return false;
+				}
+			} 
+		}
+		return true;
+	}
+
+	function colonna(num) {
+		if (num == 90) {
+			return "8";
+		} else {
+			return String(Math.floor(num / 10));
+		}
+	}
+
+	function scegli_righe(array_riga, n) {
+	return [...array_riga]              // copia dell’array
+		.sort((a, b) => a[1] - b[1])      // ordina per indice 1
+		.slice(0, n)                     // prende i primi n
+		.sort((a, b) => a[0] - b[0]);      // ordina per indice 0
+	}
+
+//]]>-->
+</script>
+</body>
+</html>
