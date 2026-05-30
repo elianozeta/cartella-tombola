@@ -5,6 +5,8 @@ Fix:
 - evitare colonne vuote alla generazione automatica dei numeri
 - evitare numeri doppi alla generazione automatica dei numeri
 - generare nuovi numeri ogni volta che si preme il tasto di popolamento della cartella
+- eliminare tocken dal codice sorgente pubblico
+https://g.co/gemini/share/7d0ea7f389a5
 
 Features:
 - UX e Grafica bottoni 
