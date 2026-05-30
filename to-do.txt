@@ -1,0 +1,13 @@
+- Generazione delle cartelle per i partecipanti:
+    ++	air table in scrittura dalle cartelle
+
+Fix:
+- evitare colonne vuote alla generazione automatica dei numeri
+- evitare numeri doppi alla generazione automatica dei numeri
+- generare nuovi numeri ogni volta che si preme il tasto di popolamento della cartella
+
+Features:
+- UX e Grafica bottoni 
+- colorare i numeri estratti al click sul numero
+
+

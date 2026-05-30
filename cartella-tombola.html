@@ -194,98 +194,137 @@
     </div>
     <button id="invia_cartella">Gioca la cartella</button>
     <script>
+      const params = new URLSearchParams(window.location.search);
+      const game = params.get("game");
+      alert("Game: " + game);
+      let erroriContainer;
+      let tutte_le_decine = false;
+      var map_cartella = {};
+      var contatore_riga = [
+        ["0", []],
+        ["1", []],
+        ["2", []],
+      ];
+      var numeri = [];
+      var mancanti = 15;
       document.addEventListener("DOMContentLoaded", function () {
         document.getElementById("numeri_casuali").addEventListener("click", completa_cartella);
         document.getElementById("invia_cartella").addEventListener("click", inviaCartella);
-      });
-      document.querySelectorAll(".numeri input").forEach((input) => {
-        const parentDiv = input.parentElement;
-
-        function checkValue() {
-          if (input.value.trim() !== "") {
-            parentDiv.classList.add("giocato");
-          } else {
-            parentDiv.classList.remove("giocato");
-          }
-        }
-
-        // Controllo iniziale
-        checkValue();
-
-        // Controllo durante la digitazione
-        input.addEventListener("input", checkValue);
-      });
-      var map_cartella;
-      var contatore_riga;
-      function completa_cartella() {
-        map_cartella = {};
-        numeri = [];
-        // lettura e controllo dei numeri inseriti dal giocatore
-        mancanti = 0;
-        let haErrore = false;
-        document.querySelectorAll(".scelta-numeri input").forEach((numero, i) => {
-          if (haErrore) {
-            numeri = [];
-            return;
-          } // Salta istantaneamente tutti i successivi senza fare nulla
-          if (numero.value != "") {
-            if (isNaN(numero.value) || numero.value < 1 || numero.value > 90) {
-              alert("Il numero " + numero.value + " non è valido!");
-              haErrore = true; // Attiva il semaforo
-              numero.focus();
-              return;
-            }
-            chiave = colonna(numero.value);
-            if (!map_cartella[chiave]) {
-              map_cartella[chiave] = [];
-            }
-            if (map_cartella[chiave].includes(numero.value)) {
-              alert("Il numero " + numero.value + " è doppio!");
-              haErrore = true; // Attiva il semaforo
-              numero.focus();
-              return;
-            } else if (map_cartella[chiave].length == 3) {
-              alert(
-                "Non puoi inserire il numero " +
-                  numero.value +
-                  ", la colonna contiene già i numeri " +
-                  map_cartella[chiave].join(", ") +
-                  "!",
-              );
-              haErrore = true; // Attiva il semaforo
-              numero.focus();
-              return;
-            }
-            map_cartella[chiave].push(numero.value);
-            numeri.push(parseInt(numero.value));
-          } else {
-            mancanti++;
-          }
+        document.querySelectorAll(".scelta-numeri input").forEach((numero) => {
+          numero.addEventListener("blur", () => checkValues(numero));
         });
-        if (haErrore) return; // Salta successivi senza fare nulla
-        if (Object.keys(map_cartella).length + mancanti < 9) {
-          alert("Ci deve essere almeno un numero in ogni colonna della cartella!");
-          numeri = [];
-          return;
-        }
-        tutte_le_decine = false;
-        while (numeri.length < 15) {
-          let num = Math.floor(Math.random() * 90) + 1;
-          if (numero_premesso(num)) {
-            numeri.push(num);
-            chiave = colonna(num);
-            if (!map_cartella[chiave]) {
-              map_cartella[chiave] = [];
-            }
-            map_cartella[chiave].push(num);
+        erroriContainer = document.getElementById("errori-container");
+      });
+      function checkValues(numero) {
+        const parentDiv = numero.parentElement;
+        if (numero.value.trim() == "") {
+          parentDiv.classList.remove("giocato");
+          parentDiv.classList.remove("errore");
+          erroriContainer.textContent = "";
+        } else {
+          let textContent = controlla_dall_inizio(numero);
+          if (textContent) {
+            parentDiv.classList.add("errore");
+            parentDiv.classList.remove("giocato");
+            erroriContainer.textContent = textContent;
+            numero.focus();
+            numero.select();
+            return;
+          } else {
+            // tutto bene
+            parentDiv.classList.remove("errore");
+            parentDiv.classList.add("giocato");
+            erroriContainer.textContent = "";
           }
         }
+      }
+      function controlla_dall_inizio(ctrl_numero) {
+        if (isNaN(ctrl_numero.value)) {
+          return "❌ " + ctrl_numero.value + " non è un numero valido!";
+        }
+        num = parseInt(ctrl_numero.value);
+        if (num < 1 || num > 90) {
+          return "❌ Il numero " + ctrl_numero.value + " non è valido! (1-90)";
+        }
+
+        map_cartella = {};
+        contatore_riga = [
+          ["0", []],
+          ["1", []],
+          ["2", []],
+        ];
+        mancanti = 15;
+        document.querySelectorAll(".scelta-numeri input").forEach((numero) => {
+          // controllo tutti gli altri numeri digitati
+          // e alla fine valuto il numero corrente
+          if (numero.id == ctrl_numero.id) {
+            return;
+          }
+          if (numero.value == "") {
+            return;
+          }
+          let chiave = colonna(numero.value);
+          if (!map_cartella[chiave]) {
+            map_cartella[chiave] = [];
+          }
+          map_cartella[chiave].push(parseInt(numero.value));
+          mancanti--;
+        });
+        let chiave = colonna(ctrl_numero.value);
+        let nuova_colonna = 0;
+        if (!map_cartella[chiave]) {
+          map_cartella[chiave] = [];
+          nuova_colonna = 1;
+        }
+        if (map_cartella[chiave].includes(num)) {
+          return "❌ Il numero " + ctrl_numero.value + " è già stato scelto!";
+        } else if (map_cartella[chiave].length == 3) {
+          return (
+            "❌ Non puoi giocare il numero " +
+            ctrl_numero.value +
+            ", hai già scelto i numeri " +
+            map_cartella[chiave].join(", ") +
+            "!"
+          );
+        } else if (colonne_giocate(map_cartella) + mancanti + nuova_colonna <= 9) {
+          return "❌ Ci deve essere almeno un numero in ogni colonna della cartella!";
+        }
+        map_cartella[chiave].push(num);
+        return "";
+      }
+      function colonne_giocate(map_cartella) {
+        let count = 0;
+        for (let chiave in map_cartella) {
+          if (map_cartella[chiave].length > 0) {
+            count++;
+          }
+        }
+        return count;
+      }
+      function numeri_giocati(map_cartella) {
+        let count = 0;
+        for (let chiave in map_cartella) {
+          count += map_cartella[chiave].length;
+        }
+        return count;
+      }
+
+      function completa_cartella() {
         // pulisco la cartella
         var campi_da_pulire = document.querySelectorAll(".cartella-griglia div");
         for (let campo of campi_da_pulire) {
           campo.innerHTML = "";
         }
+        numeri_inseriti = numeri_giocati(map_cartella);
 
+        while (numeri_inseriti < 15) {
+          let num = Math.floor(Math.random() * 90) + 1;
+          if (numero_premesso(num)) {
+            chiave = colonna(num);
+            map_cartella[chiave].push(num);
+            numeri_inseriti++;
+          }
+        }
         contatore_riga = [
           ["0", []],
           ["1", []],
@@ -302,29 +341,130 @@
           }
         }
       }
+
+      // var map_cartella;
+      // var contatore_riga;
+      // function completa_cartella_old() {
+      //   map_cartella = {};
+      //   numeri = [];
+      //   // lettura e controllo dei numeri inseriti dal giocatore
+      //   mancanti = 0;
+      //   let haErrore = false;
+      //   document.querySelectorAll(".scelta-numeri input").forEach((numero, i) => {
+      //     if (haErrore) {
+      //       numeri = [];
+      //       return;
+      //     } // Salta istantaneamente tutti i successivi senza fare nulla
+      //     if (numero.value != "") {
+      //       if (isNaN(numero.value) || numero.value < 1 || numero.value > 90) {
+      //         alert("Il numero " + numero.value + " non è valido!");
+      //         haErrore = true; // Attiva il semaforo
+      //         numero.focus();
+      //         return;
+      //       }
+      //       chiave = colonna(numero.value);
+      //       if (!map_cartella[chiave]) {
+      //         map_cartella[chiave] = [];
+      //       }
+      //       if (map_cartella[chiave].includes(numero.value)) {
+      //         alert("Il numero " + numero.value + " è doppio!");
+      //         haErrore = true; // Attiva il semaforo
+      //         numero.focus();
+      //         return;
+      //       } else if (map_cartella[chiave].length == 3) {
+      //         alert(
+      //           "Non puoi inserire il numero " +
+      //             numero.value +
+      //             ", la colonna contiene già i numeri " +
+      //             map_cartella[chiave].join(", ") +
+      //             "!",
+      //         );
+      //         haErrore = true; // Attiva il semaforo
+      //         numero.focus();
+      //         return;
+      //       }
+      //       map_cartella[chiave].push(numero.value);
+      //       numeri.push(parseInt(numero.value));
+      //     } else {
+      //       mancanti++;
+      //     }
+      //   });
+      //   if (haErrore) return; // Salta successivi senza fare nulla
+      //   if (Object.keys(map_cartella).length + mancanti < 9) {
+      //     alert("Ci deve essere almeno un numero in ogni colonna della cartella!");
+      //     numeri = [];
+      //     return;
+      //   }
+      //   tutte_le_decine = false;
+      //   while (numeri.length < 15) {
+      //     let num = Math.floor(Math.random() * 90) + 1;
+      //     if (numero_premesso(num)) {
+      //       numeri.push(num);
+      //       chiave = colonna(num);
+      //       if (!map_cartella[chiave]) {
+      //         map_cartella[chiave] = [];
+      //       }
+      //       map_cartella[chiave].push(num);
+      //     }
+      //   }
+      //   // pulisco la cartella
+      //   var campi_da_pulire = document.querySelectorAll(".cartella-griglia div");
+      //   for (let campo of campi_da_pulire) {
+      //     campo.innerHTML = "";
+      //   }
+
+      //   contatore_riga = [
+      //     ["0", []],
+      //     ["1", []],
+      //     ["2", []],
+      //   ];
+      //   for (let chiave in map_cartella) {
+      //     let righe_scelte = scegli_righe(contatore_riga, map_cartella[chiave].length);
+      //     map_cartella[chiave].sort();
+      //     for (let i = 0; i < map_cartella[chiave].length; i++) {
+      //       let id = righe_scelte[i][0] + chiave;
+      //       campo = document.getElementById(id);
+      //       campo.innerHTML = map_cartella[chiave][i];
+      //       contatore_riga[Number(righe_scelte[i][0])][1].push(map_cartella[chiave][i]);
+      //     }
+      //   }
+      // }
       function numero_premesso(num) {
-        if (numeri.includes(num)) {
-          return false;
-        }
         if (!tutte_le_decine) {
           if (Object.keys(map_cartella).length === 9) {
             tutte_le_decine = true;
           }
         }
-        let presenti = 0;
-        for (let i = 0; i < numeri.length; i++) {
-          if (colonna(num) == colonna(numeri[i])) {
-            if (!tutte_le_decine) {
-              // completo tutte le decine prima di permettere altri numeri nella stessa decina
-              return false;
-            }
-            presenti++;
-            if (presenti > 3) {
-              return false;
-            }
-          }
+        let chiave = colonna(num);
+        if (!map_cartella[chiave]) {
+          map_cartella[chiave] = [];
+        } else if (!tutte_le_decine) {
+          // completo tutte le decine prima di permettere altri numeri nella stessa decina
+          return false;
+        }
+        if (map_cartella[chiave].includes(String(num))) {
+          return false;
+        }
+        if (map_cartella[chiave].length >= 3) {
+          return false;
         }
         return true;
+        // for (let i = 0; i < numeri.length; i++) {
+        //   if (colonna(num) == colonna(numeri[i])) {
+        //     if (!tutte_le_decine) {
+        //       // completo tutte le decine prima di permettere altri numeri nella stessa decina
+        //       return false;
+        //     }
+        //     if (numeri.includes(num)) {
+        //       return false;
+        //     }
+        //     presenti++;
+        //     if (presenti > 3) {
+        //       return false;
+        //     }
+        //   }
+        // }
+        // return true;
       }
 
       function colonna(num) {
