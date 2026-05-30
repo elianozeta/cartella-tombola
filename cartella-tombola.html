@@ -196,7 +196,7 @@
     <script>
       const params = new URLSearchParams(window.location.search);
       const game = params.get("game");
-      alert("Game: " + game);
+      // alert("Game: " + game);
       let erroriContainer;
       let tutte_le_decine = false;
       var map_cartella = {};
@@ -205,7 +205,6 @@
         ["1", []],
         ["2", []],
       ];
-      var numeri = [];
       var mancanti = 15;
       document.addEventListener("DOMContentLoaded", function () {
         document.getElementById("numeri_casuali").addEventListener("click", completa_cartella);
@@ -217,12 +216,12 @@
       });
       function checkValues(numero) {
         const parentDiv = numero.parentElement;
+        let textContent = controlla_se_permesso(numero);
         if (numero.value.trim() == "") {
           parentDiv.classList.remove("giocato");
           parentDiv.classList.remove("errore");
           erroriContainer.textContent = "";
         } else {
-          let textContent = controlla_dall_inizio(numero);
           if (textContent) {
             parentDiv.classList.add("errore");
             parentDiv.classList.remove("giocato");
@@ -238,50 +237,33 @@
           }
         }
       }
-      function controlla_dall_inizio(ctrl_numero) {
-        if (isNaN(ctrl_numero.value)) {
-          return "❌ " + ctrl_numero.value + " non è un numero valido!";
-        }
-        num = parseInt(ctrl_numero.value);
-        if (num < 1 || num > 90) {
-          return "❌ Il numero " + ctrl_numero.value + " non è valido! (1-90)";
+      function controlla_se_permesso(ctrl_numero) {
+        let num;
+        if (ctrl_numero instanceof HTMLElement) {
+          num = parseInt(ctrl_numero.value);
+          if (isNaN(ctrl_numero.value)) {
+            return "❌ " + ctrl_numero.value + " non è un numero valido!";
+          }
+          aggiorna_map_cartella(ctrl_numero);
+        } else {
+          num = ctrl_numero;
         }
 
-        map_cartella = {};
-        contatore_riga = [
-          ["0", []],
-          ["1", []],
-          ["2", []],
-        ];
-        mancanti = 15;
-        document.querySelectorAll(".scelta-numeri input").forEach((numero) => {
-          // controllo tutti gli altri numeri digitati
-          // e alla fine valuto il numero corrente
-          if (numero.id == ctrl_numero.id) {
-            return;
-          }
-          if (numero.value == "") {
-            return;
-          }
-          let chiave = colonna(numero.value);
-          if (!map_cartella[chiave]) {
-            map_cartella[chiave] = [];
-          }
-          map_cartella[chiave].push(parseInt(numero.value));
-          mancanti--;
-        });
-        let chiave = colonna(ctrl_numero.value);
+        let chiave = colonna(num);
         let nuova_colonna = 0;
         if (!map_cartella[chiave]) {
           map_cartella[chiave] = [];
           nuova_colonna = 1;
         }
+        if (num < 1 || num > 90) {
+          return "❌ Il numero " + num + " non è valido! (1-90)";
+        }
         if (map_cartella[chiave].includes(num)) {
-          return "❌ Il numero " + ctrl_numero.value + " è già stato scelto!";
-        } else if (map_cartella[chiave].length == 3) {
+          return "❌ Il numero " + num + " è già stato scelto!";
+        } else if (map_cartella[chiave].length >= 3) {
           return (
             "❌ Non puoi giocare il numero " +
-            ctrl_numero.value +
+            num +
             ", hai già scelto i numeri " +
             map_cartella[chiave].join(", ") +
             "!"
@@ -309,20 +291,49 @@
         return count;
       }
 
+      function aggiorna_map_cartella(ctrl_numero) {
+        map_cartella = {};
+        contatore_riga = [
+          ["0", []],
+          ["1", []],
+          ["2", []],
+        ];
+        mancanti = 15;
+        document.querySelectorAll(".scelta-numeri input").forEach((numero) => {
+          // controllo tutti gli altri numeri scelti dall'utente
+          // e alla fine valuto il numero corrente
+          if (ctrl_numero instanceof HTMLElement) {
+            if (numero.id == ctrl_numero.id) {
+              return;
+            }
+          }
+          if (numero.value == "") {
+            return;
+          }
+          let chiave = colonna(numero.value);
+          if (!map_cartella[chiave]) {
+            map_cartella[chiave] = [];
+          }
+          map_cartella[chiave].push(parseInt(numero.value));
+          mancanti--;
+        });
+      }
+
       function completa_cartella() {
         // pulisco la cartella
+        // alert(completa_cartella);
         var campi_da_pulire = document.querySelectorAll(".cartella-griglia div");
         for (let campo of campi_da_pulire) {
           campo.innerHTML = "";
         }
+        aggiorna_map_cartella();
         numeri_inseriti = numeri_giocati(map_cartella);
 
         while (numeri_inseriti < 15) {
           let num = Math.floor(Math.random() * 90) + 1;
-          if (numero_premesso(num)) {
-            chiave = colonna(num);
-            map_cartella[chiave].push(num);
+          if (controlla_se_permesso(num) === "") {
             numeri_inseriti++;
+            mancanti--;
           }
         }
         contatore_riga = [
@@ -340,131 +351,6 @@
             contatore_riga[Number(righe_scelte[i][0])][1].push(map_cartella[chiave][i]);
           }
         }
-      }
-
-      // var map_cartella;
-      // var contatore_riga;
-      // function completa_cartella_old() {
-      //   map_cartella = {};
-      //   numeri = [];
-      //   // lettura e controllo dei numeri inseriti dal giocatore
-      //   mancanti = 0;
-      //   let haErrore = false;
-      //   document.querySelectorAll(".scelta-numeri input").forEach((numero, i) => {
-      //     if (haErrore) {
-      //       numeri = [];
-      //       return;
-      //     } // Salta istantaneamente tutti i successivi senza fare nulla
-      //     if (numero.value != "") {
-      //       if (isNaN(numero.value) || numero.value < 1 || numero.value > 90) {
-      //         alert("Il numero " + numero.value + " non è valido!");
-      //         haErrore = true; // Attiva il semaforo
-      //         numero.focus();
-      //         return;
-      //       }
-      //       chiave = colonna(numero.value);
-      //       if (!map_cartella[chiave]) {
-      //         map_cartella[chiave] = [];
-      //       }
-      //       if (map_cartella[chiave].includes(numero.value)) {
-      //         alert("Il numero " + numero.value + " è doppio!");
-      //         haErrore = true; // Attiva il semaforo
-      //         numero.focus();
-      //         return;
-      //       } else if (map_cartella[chiave].length == 3) {
-      //         alert(
-      //           "Non puoi inserire il numero " +
-      //             numero.value +
-      //             ", la colonna contiene già i numeri " +
-      //             map_cartella[chiave].join(", ") +
-      //             "!",
-      //         );
-      //         haErrore = true; // Attiva il semaforo
-      //         numero.focus();
-      //         return;
-      //       }
-      //       map_cartella[chiave].push(numero.value);
-      //       numeri.push(parseInt(numero.value));
-      //     } else {
-      //       mancanti++;
-      //     }
-      //   });
-      //   if (haErrore) return; // Salta successivi senza fare nulla
-      //   if (Object.keys(map_cartella).length + mancanti < 9) {
-      //     alert("Ci deve essere almeno un numero in ogni colonna della cartella!");
-      //     numeri = [];
-      //     return;
-      //   }
-      //   tutte_le_decine = false;
-      //   while (numeri.length < 15) {
-      //     let num = Math.floor(Math.random() * 90) + 1;
-      //     if (numero_premesso(num)) {
-      //       numeri.push(num);
-      //       chiave = colonna(num);
-      //       if (!map_cartella[chiave]) {
-      //         map_cartella[chiave] = [];
-      //       }
-      //       map_cartella[chiave].push(num);
-      //     }
-      //   }
-      //   // pulisco la cartella
-      //   var campi_da_pulire = document.querySelectorAll(".cartella-griglia div");
-      //   for (let campo of campi_da_pulire) {
-      //     campo.innerHTML = "";
-      //   }
-
-      //   contatore_riga = [
-      //     ["0", []],
-      //     ["1", []],
-      //     ["2", []],
-      //   ];
-      //   for (let chiave in map_cartella) {
-      //     let righe_scelte = scegli_righe(contatore_riga, map_cartella[chiave].length);
-      //     map_cartella[chiave].sort();
-      //     for (let i = 0; i < map_cartella[chiave].length; i++) {
-      //       let id = righe_scelte[i][0] + chiave;
-      //       campo = document.getElementById(id);
-      //       campo.innerHTML = map_cartella[chiave][i];
-      //       contatore_riga[Number(righe_scelte[i][0])][1].push(map_cartella[chiave][i]);
-      //     }
-      //   }
-      // }
-      function numero_premesso(num) {
-        if (!tutte_le_decine) {
-          if (Object.keys(map_cartella).length === 9) {
-            tutte_le_decine = true;
-          }
-        }
-        let chiave = colonna(num);
-        if (!map_cartella[chiave]) {
-          map_cartella[chiave] = [];
-        } else if (!tutte_le_decine) {
-          // completo tutte le decine prima di permettere altri numeri nella stessa decina
-          return false;
-        }
-        if (map_cartella[chiave].includes(String(num))) {
-          return false;
-        }
-        if (map_cartella[chiave].length >= 3) {
-          return false;
-        }
-        return true;
-        // for (let i = 0; i < numeri.length; i++) {
-        //   if (colonna(num) == colonna(numeri[i])) {
-        //     if (!tutte_le_decine) {
-        //       // completo tutte le decine prima di permettere altri numeri nella stessa decina
-        //       return false;
-        //     }
-        //     if (numeri.includes(num)) {
-        //       return false;
-        //     }
-        //     presenti++;
-        //     if (presenti > 3) {
-        //       return false;
-        //     }
-        //   }
-        // }
-        // return true;
       }
 
       function colonna(num) {
@@ -488,13 +374,6 @@
       const TABLE_ID = "tblqkVkKwVVCJIvYS";
 
       async function inviaCartella() {
-        // const btn = document.getElementById("btn");
-        // const status = document.getElementById("status");
-
-        // btn.disabled = true;
-        // btn.textContent = "⏳ Invio…";
-        // status.className = "";
-        // status.textContent = "";
         if (!map_cartella) {
           alert("Genera la cartella per giocare!");
           return;
@@ -510,24 +389,41 @@
           .join("|");
 
         try {
-          const res = await fetch(`https://api.airtable.com/v0/${BASE_ID}/${TABLE_ID}`, {
-            method: "POST",
-            headers: {
-              Authorization: `Bearer ${AIRTABLE_TOKEN}`,
-              "Content-Type": "application/json",
+          // const res = await fetch(`https://api.airtable.com/v0/${BASE_ID}/${TABLE_ID}`, {
+          //   method: "POST",
+          //   headers: {
+          //     Authorization: `Bearer ${AIRTABLE_TOKEN}`,
+          //     "Content-Type": "application/json",
+          //   },
+          //   body: JSON.stringify({
+          //     fields: {
+          //       Player: document.getElementById("cartiglio").value.trim(),
+          //       "Numbers Selected": numeri,
+          //       Game: "PARTITA_TEST",
+          //     },
+          //   }),
+          // });
+
+          datiDaInviare = [
+            {
+              Player: document.getElementById("cartiglio").value.trim(),
+              "Numbers Selected": numeri,
+              Game: game,
             },
-            body: JSON.stringify({
-              fields: {
-                Player: document.getElementById("cartiglio").value.trim(),
-                "Numbers Selected": numeri,
-                Game: "PARTITA_TEST",
-              },
-            }),
+          ];
+          url =
+            "https://v1.nocodeapi.com/elianozeta/airtable/AxzRUvUeDYyxtZmo?tableName=tblqkVkKwVVCJIvYS";
+          const res = await fetch(url, {
+            method: "POST", // Specifichiamo che stiamo inserendo dati
+            headers: {
+              "Content-Type": "application/json", // Diciamo al server che stiamo inviando un JSON
+            },
+            body: JSON.stringify(datiDaInviare), // Trasformiamo l'array di oggetti in testo JSON
           });
 
           if (res.ok) {
             const data = await res.json();
-            alert("✅ Riga inserita! ID: " + data.id);
+            alert("✅ Riga inserita! ID: " + data[0].id);
           } else {
             const err = await res.json();
             alert("❌ Errore: " + (err.error?.message || JSON.stringify(err)));
@@ -536,9 +432,6 @@
         } catch (e) {
           alert("❌ Errore di rete: " + e.message);
         }
-
-        // btn.disabled = false;
-        // btn.textContent = "▶ Invia riga di prova";
       }
     </script>
   </body>
