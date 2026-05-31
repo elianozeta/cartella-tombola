@@ -135,7 +135,7 @@
       href="https://fonts.googleapis.com/css2?family=Libre+Bodoni:wght@400;700&display=swap"
     />
     <fieldset>
-      <legend>Scegli i tuoi numeri</legend>
+      <legend>Scegli fino a 15 numeri</legend>
       <div id="errori-container" class="messaggio-errore"></div>
       <div class="scelta-numeri numeri">
         <div><input id="n_0" size="2" /></div>
@@ -194,18 +194,45 @@
     </div>
     <button id="invia_cartella">Gioca la cartella</button>
     <script>
+      const Store = {
+        get(k) {
+          return localStorage.getItem(k) ?? sessionStorage.getItem(k);
+        },
+        set(k, v, storage) {
+          if (storage === "local") {
+            localStorage.setItem(k, v);
+          } else {
+            sessionStorage.setItem(k, v);
+          }
+        },
+        remove(k) {
+          sessionStorage.removeItem(k);
+          localStorage.removeItem(k);
+        },
+      };
       const params = new URLSearchParams(window.location.search);
       const game = params.get("game");
       // alert("Game: " + game);
       let erroriContainer;
       let tutte_le_decine = false;
       var map_cartella = {};
+      var row_scelti = [];
       var contatore_riga = [
         ["0", []],
         ["1", []],
         ["2", []],
       ];
       var mancanti = 15;
+      function imposta_cartella_giocata() {
+        document.getElementById("cartiglio").disabled = true;
+        document.querySelectorAll(".scelta-numeri input").forEach((input) => {
+          input.disabled = true;
+        });
+        document.getElementById("numeri_casuali").disabled = true;
+        document.getElementById("invia_cartella").disabled = true;
+      }
+      let cartella_salvata = Store.get(game);
+      // alert("Cartella salvata: " + cartella_salvata);
       document.addEventListener("DOMContentLoaded", function () {
         document.getElementById("numeri_casuali").addEventListener("click", completa_cartella);
         document.getElementById("invia_cartella").addEventListener("click", inviaCartella);
@@ -213,6 +240,24 @@
           numero.addEventListener("blur", () => checkValues(numero));
         });
         erroriContainer = document.getElementById("errori-container");
+        if (cartella_salvata) {
+          imposta_cartella_giocata();
+          let dict_cartella_salvata = JSON.parse(cartella_salvata);
+          numeri_inviati = dict_cartella_salvata["Numbers Selected"];
+          document.getElementById("cartiglio").value = dict_cartella_salvata["Player"];
+          for (const riga of numeri_inviati.split("|")) {
+            for (const numero of riga.split(",")) {
+              controlla_se_permesso(numero);
+            }
+          }
+          for (const [index, stringaNumeri] of dict_cartella_salvata["scelta_utente"].entries()) {
+            numero = document.getElementById("n_" + index);
+            numero.value = stringaNumeri;
+            const parentDiv = numero.parentElement;
+            parentDiv.classList.add("giocato");
+          }
+          disponi_numeri_in_cartella();
+        }
       });
       function checkValues(numero) {
         const parentDiv = numero.parentElement;
@@ -293,6 +338,7 @@
 
       function aggiorna_map_cartella(ctrl_numero) {
         map_cartella = {};
+        row_scelti = [];
         contatore_riga = [
           ["0", []],
           ["1", []],
@@ -315,6 +361,7 @@
             map_cartella[chiave] = [];
           }
           map_cartella[chiave].push(parseInt(numero.value));
+          row_scelti.push(parseInt(numero.value));
           mancanti--;
         });
       }
@@ -322,10 +369,6 @@
       function completa_cartella() {
         // pulisco la cartella
         // alert(completa_cartella);
-        var campi_da_pulire = document.querySelectorAll(".cartella-griglia div");
-        for (let campo of campi_da_pulire) {
-          campo.innerHTML = "";
-        }
         aggiorna_map_cartella();
         numeri_inseriti = numeri_giocati(map_cartella);
 
@@ -336,11 +379,19 @@
             mancanti--;
           }
         }
+        disponi_numeri_in_cartella();
+      }
+
+      function disponi_numeri_in_cartella() {
         contatore_riga = [
           ["0", []],
           ["1", []],
           ["2", []],
         ];
+        var campi_da_pulire = document.querySelectorAll(".cartella-griglia div");
+        for (let campo of campi_da_pulire) {
+          campo.innerHTML = "";
+        }
         for (let chiave in map_cartella) {
           let righe_scelte = scegli_righe(contatore_riga, map_cartella[chiave].length);
           map_cartella[chiave].sort();
@@ -352,7 +403,6 @@
           }
         }
       }
-
       function colonna(num) {
         if (parseInt(num) == 90) {
           return "8";
@@ -367,11 +417,10 @@
           .slice(0, n) // prende i primi n
           .sort((a, b) => a[0] - b[0]); // ordina per indice 0
       }
-
-      const AIRTABLE_TOKEN =
-        "patRlCoiJk7kdrjSg.4c5eb4753eae088ff9f89028a00eeaccb9f5513c1e87b396d1ef6f349f31924f";
-      const BASE_ID = "app2o7kaTcpzSld1Z";
-      const TABLE_ID = "tblqkVkKwVVCJIvYS";
+      // const AIRTABLE_TOKEN =
+      //   "patRlCoiJk7kdrjSg.4c5eb4753eae088ff9f89028a00eeaccb9f5513c1e87b396d1ef6f349f31924f";
+      // const BASE_ID = "app2o7kaTcpzSld1Z";
+      // const TABLE_ID = "tblqkVkKwVVCJIvYS";
 
       async function inviaCartella() {
         if (!map_cartella) {
@@ -411,6 +460,7 @@
               Game: game,
             },
           ];
+          body_inviato = JSON.stringify(datiDaInviare);
           url =
             "https://v1.nocodeapi.com/elianozeta/airtable/AxzRUvUeDYyxtZmo?tableName=tblqkVkKwVVCJIvYS";
           const res = await fetch(url, {
@@ -418,12 +468,22 @@
             headers: {
               "Content-Type": "application/json", // Diciamo al server che stiamo inviando un JSON
             },
-            body: JSON.stringify(datiDaInviare), // Trasformiamo l'array di oggetti in testo JSON
+            body: body_inviato, // Trasformiamo l'array di oggetti in testo JSON
           });
 
           if (res.ok) {
             const data = await res.json();
             alert("✅ Riga inserita! ID: " + data[0].id);
+            Store.set(
+              game,
+              JSON.stringify({
+                Player: document.getElementById("cartiglio").value.trim(),
+                "Numbers Selected": numeri,
+                scelta_utente: row_scelti,
+              }),
+              "session",
+            );
+            imposta_cartella_giocata();
           } else {
             const err = await res.json();
             alert("❌ Errore: " + (err.error?.message || JSON.stringify(err)));
