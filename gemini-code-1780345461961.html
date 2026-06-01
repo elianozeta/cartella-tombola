@@ -1,0 +1,781 @@
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <style>
+      :root {
+        --colore-chiaro: Lightgray;
+        --colore-scuro: FireBrick;
+        --colore-successo: #28a745;
+        --colore-successo-hover: #218838;
+      }
+      body {
+        font-family: "Libre Bodoni", serif;
+        font-size: 16px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 20px;
+        background-color: #faf8f5;
+        padding: 20px;
+      }
+
+      h1 {
+        margin: 0;
+        color: #333;
+      }
+
+      /* Stili generali per i passaggi guidati (Wizard) */
+      .step-container {
+        width: 100%;
+        max-width: 900px;
+        background: #fff;
+        border: 1px solid #e0e0e0;
+        border-radius: 8px;
+        padding: 20px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+        box-sizing: border-box;
+        /* transition: opacity 0.3s ease; */
+      }
+
+      .step-container.disabled {
+        /* opacity: 0.4; */
+        pointer-events: none;
+      }
+
+      .step-header {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        margin-bottom: 10px;
+        border-bottom: 2px solid #eee;
+        padding-bottom: 8px;
+      }
+
+      .step-badge {
+        background-color: var(--colore-scuro);
+        color: white;
+        border-radius: 50%;
+        width: 28px;
+        height: 28px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        font-weight: bold;
+      }
+
+      .step-title {
+        font-size: 1.4rem;
+        margin: 0;
+        font-weight: 700;
+      }
+
+      .step-desc {
+        font-size: 0.95rem;
+        color: #666;
+        margin: 0 0 15px 0;
+      }
+
+      /* Pulsanti */
+      button {
+        font-family: inherit;
+        font-size: 1.1rem;
+        padding: 10px 20px;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+        font-weight: bold;
+        transition:
+          background-color 0.2s,
+          transform 0.1s;
+      }
+
+      button:disabled {
+        background-color: #ccc !important;
+        cursor: not-allowed;
+        transform: none !important;
+      }
+
+      #numeri_casuali {
+        background-color: #007bff;
+        color: white;
+      }
+
+      #numeri_casuali:hover {
+        background-color: #0069d9;
+      }
+
+      #invia_cartella {
+        background-color: var(--colore-successo);
+        color: white;
+        display: block;
+        margin: 20px auto 0 auto;
+        width: 100%;
+        max-width: 300px;
+      }
+
+      #invia_cartella:hover {
+        background-color: var(--colore-successo-hover);
+      }
+
+      button:active {
+        transform: scale(0.98);
+      }
+
+      /* Elementi preesistenti della cartella riadattati */
+      fieldset {
+        border: none;
+        padding: 0;
+        margin: 0 0 15px 0;
+      }
+
+      .cartella {
+        border: 7px solid red;
+        font-size: 2rem;
+        text-align: center;
+        border-radius: 5px;
+        box-shadow: 1px 1px 5px LightGray;
+        background-color: #f5f1e4;
+        max-width: 100%;
+        margin: 0 auto;
+      }
+
+      .cartella-header {
+        margin: 0.1rem;
+        padding: 1rem;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        border: 6px solid red;
+        border-radius: 5px;
+        background-color: inherit;
+        /* opacity: 1; */
+      }
+
+      /* .cartella-header {
+        margin: 0.1rem;
+        padding: 1rem;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        border: 6px solid red;
+        border-radius: 5px;
+        background-color: inherit;
+        opacity: 1;
+      } */
+
+      .cartella-header input {
+        text-align: center;
+        font-style: italic;
+        border: none;
+        font-family: inherit;
+        font-size: inherit;
+        background-color: inherit;
+        width: 100%; /* Forza l'input a coprire tutta la larghezza del box bianco */
+      }
+
+      /* .cartella-header input {
+        text-align: center;
+        font-style: italic;
+        border: none;
+        font-family: inherit;
+        font-size: inherit;
+        background-color: #fff;
+        border: 1px dashed silver;
+        padding: 5px;
+        border-radius: 4px;
+        width: 100%;
+        box-sizing: border-box;
+      } */
+
+      /* .cartella-header input:focus {
+        outline: 2px solid var(--colore-scuro);
+      }
+
+      .cartella-header input:disabled {
+        background-color: transparent;
+        border: none;
+      } */
+
+      .cartella-griglia {
+        margin: 0.1rem;
+        display: grid;
+        grid-template-columns: repeat(9, 1fr);
+        grid-template-rows: repeat(3, 1fr);
+        font-size: 3rem;
+        border: 3px solid red;
+      }
+
+      .cartella-griglia > div {
+        border: 3px solid red;
+        min-height: 80px;
+        aspect-ratio: 1 / 1.3;
+        padding: 2px;
+        display: flex;
+        justify-content: center;
+        align-items: flex-end;
+        box-sizing: border-box;
+      }
+
+      /* Regola per evidenziare che la griglia è interattiva solo a fine gioco */
+      .cartella-griglia.attiva > div:not(:empty) {
+        cursor: pointer;
+      }
+      .cartella-griglia.attiva > div:not(:empty):hover {
+        background-color: rgba(0, 0, 0, 0.05);
+      }
+
+      .numeri {
+        gap: 10px;
+        text-align: center;
+        background-color: inherit;
+      }
+
+      .scelta-numeri {
+        display: flex;
+        align-items: center;
+        flex-wrap: wrap;
+        justify-content: center;
+      }
+
+      .numeri > div {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        border-radius: 45px;
+        aspect-ratio: 1 / 1;
+        border-style: solid;
+        border-width: 1px;
+        border-color: silver;
+        box-shadow: 1px 1px 5px gray;
+        min-width: 60px;
+        background-color: #fff;
+      }
+
+      .numeri > .giocato {
+        border-color: red;
+        color: red;
+        border-width: 5px;
+        background-color: #f5f1e4;
+        box-shadow:
+          inset 0 2px 4px rgba(0, 0, 0, 0.2),
+          inset 0 -2px 3px rgba(255, 255, 255, 0.6);
+      }
+
+      .numeri input {
+        text-align: center;
+        border: none;
+        color: inherit;
+        font-family: inherit;
+        font-size: 1.6em;
+        font-style: italic;
+        font-weight: bold;
+        background-color: inherit;
+        width: 75%;
+      }
+
+      .numeri input:disabled {
+        color: #777;
+      }
+
+      .numeri .errore {
+        background-color: yellow;
+        opacity: 0.5;
+        border-radius: 5px;
+      }
+
+      .messaggio-errore {
+        color: red;
+        font-size: 0.9em;
+        margin-bottom: 10px;
+        height: 20px;
+        font-weight: bold;
+        text-align: center;
+      }
+
+      .numero-estratto {
+        animation: shadowcolor 1s infinite;
+        background-image: radial-gradient(white, var(--colore-chiaro), var(--colore-scuro));
+      }
+
+      .hidden {
+        display: none !important;
+      }
+      /* Stile per l'icona info */
+      .info-tooltip {
+        display: inline-flex;
+        justify-content: center;
+        align-items: center;
+        cursor: pointer;
+        font-size: 1.2rem;
+        margin-left: 8px;
+        position: relative;
+        transition: transform 0.2s;
+      }
+
+      .info-tooltip:hover {
+        transform: scale(1.2);
+      }
+
+      /* Creazione del fumetto (Tooltip) tramite pseudo-elemento */
+      .info-tooltip::after {
+        content: attr(data-tooltip); /* Prende il testo dall'attributo HTML */
+        position: absolute;
+        top: 130%; /* Lo posiziona sotto l'icona */
+        left: 50%;
+        transform: translateX(-50%);
+
+        /* Stile grafico del fumetto */
+        background-color: #333;
+        color: #fff;
+        padding: 12px 16px;
+        border-radius: 6px;
+        font-family: sans-serif; /* Un font bastone si legge meglio nei piccoli popup */
+        font-size: 0.85rem;
+        font-weight: normal;
+        line-height: 1.4;
+        text-align: left;
+        white-space: pre-line; /* Permette i ritorni a capo (\n o invio) */
+        width: 280px;
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.25);
+        z-index: 100;
+
+        /* Stato iniziale: Nascosto */
+        opacity: 0;
+        pointer-events: none;
+        transition:
+          opacity 0.2s ease,
+          transform 0.2s ease;
+      }
+
+      /* Mostra il fumetto al mouse over */
+      .info-tooltip:hover::after {
+        opacity: 1;
+        transform: translateX(-50%) translateY(5px);
+      }
+    </style>
+  </head>
+  <body>
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Libre+Bodoni:wght@400;700&display=swap"
+    />
+
+    <!-- STEP 1: CONFIGURAZIONE E GENERAZIONE -->
+    <section id="sezione-step1" class="step-container">
+      <div class="step-header">
+        <div class="step-badge">1</div>
+        <h2 class="step-title">Scegli i tuoi numeri preferiti</h2>
+        <span
+          class="info-tooltip"
+          data-tooltip="Regole di selezione:
+• Inserisci solo numeri validi, compresi tra 1 e 90.
+• Inserisci al massimo 3 numeri per ogni colonna (es. max tre numeri tra 10 e 19).
+"
+          >ℹ️</span
+        >
+      </div>
+      <p class="step-desc">
+        Digita fino a 15 numeri preferiti (da 1 a 90) nelle caselle circolari. I restanti verranno
+        scelti casualmente dal sistema.
+      </p>
+
+      <fieldset>
+        <div id="errori-container" class="messaggio-errore"></div>
+        <div class="scelta-numeri numeri">
+          <div><input id="n_0" size="2" type="text" inputmode="numeric" /></div>
+          <div><input id="n_1" size="2" type="text" inputmode="numeric" /></div>
+          <div><input id="n_2" size="2" type="text" inputmode="numeric" /></div>
+          <div><input id="n_3" size="2" type="text" inputmode="numeric" /></div>
+          <div><input id="n_4" size="2" type="text" inputmode="numeric" /></div>
+          <div><input id="n_5" size="2" type="text" inputmode="numeric" /></div>
+          <div><input id="n_6" size="2" type="text" inputmode="numeric" /></div>
+          <div><input id="n_7" size="2" type="text" inputmode="numeric" /></div>
+          <div><input id="n_8" size="2" type="text" inputmode="numeric" /></div>
+          <div><input id="n_9" size="2" type="text" inputmode="numeric" /></div>
+          <div><input id="n_10" size="2" type="text" inputmode="numeric" /></div>
+          <div><input id="n_11" size="2" type="text" inputmode="numeric" /></div>
+          <div><input id="n_12" size="2" type="text" inputmode="numeric" /></div>
+          <div><input id="n_13" size="2" type="text" inputmode="numeric" /></div>
+          <div><input id="n_14" size="2" type="text" inputmode="numeric" /></div>
+        </div>
+      </fieldset>
+
+      <div style="text-align: center">
+        <button id="numeri_casuali">🎲 Disponi i numeri nella cartella</button>
+      </div>
+    </section>
+
+    <!-- STEP 2: PERSONALIZZAZIONE E CONFERMA -->
+    <section id="sezione-step2" class="step-container disabled">
+      <div class="step-header">
+        <div class="step-badge">2</div>
+        <h2 class="step-title">Controlla e Conferma la Cartella</h2>
+      </div>
+      <p class="step-desc">
+        Puoi premere nuovamente il tasto sopra se desideri rigenerare i numeri casuali. Per
+        completare e giocare la cartella, scrivi il tuo nome nella cartella.
+      </p>
+
+      <div class="cartella">
+        <div class="cartella-header">
+          <input id="cartiglio" placeholder="Il tuo nome" autocomplete="off" />
+        </div>
+        <div class="cartella-griglia" id="griglia-tabella">
+          <div id="00"></div>
+          <div id="01"></div>
+          <div id="02"></div>
+          <div id="03"></div>
+          <div id="04"></div>
+          <div id="05"></div>
+          <div id="06"></div>
+          <div id="07"></div>
+          <div id="08"></div>
+
+          <div id="10"></div>
+          <div id="11"></div>
+          <div id="12"></div>
+          <div id="13"></div>
+          <div id="14"></div>
+          <div id="15"></div>
+          <div id="16"></div>
+          <div id="17"></div>
+          <div id="18"></div>
+
+          <div id="20"></div>
+          <div id="21"></div>
+          <div id="22"></div>
+          <div id="23"></div>
+          <div id="24"></div>
+          <div id="25"></div>
+          <div id="26"></div>
+          <div id="27"></div>
+          <div id="28"></div>
+        </div>
+      </div>
+
+      <button id="invia_cartella" disabled>🔒 Gioca la cartella</button>
+    </section>
+
+    <script>
+      const Store = {
+        get(k) {
+          return localStorage.getItem(k) ?? sessionStorage.getItem(k);
+        },
+        set(k, v, storage) {
+          if (storage === "local") {
+            localStorage.setItem(k, v);
+          } else {
+            sessionStorage.setItem(k, v);
+          }
+        },
+        remove(k) {
+          sessionStorage.removeItem(k);
+          localStorage.removeItem(k);
+        },
+      };
+      const params = new URLSearchParams(window.location.search);
+      const game = params.get("game");
+      let erroriContainer;
+      let tutte_le_decine = false;
+      var map_cartella = {};
+      var row_scelti = [];
+      var contatore_riga = [
+        ["0", []],
+        ["1", []],
+        ["2", []],
+      ];
+      var mancanti = 15;
+
+      // Funzione per congelare l'interfaccia e abilitare la marcatura dei numeri usciti
+      function imposta_cartella_giocata() {
+        document.getElementById("cartiglio").disabled = true;
+        document.querySelectorAll(".scelta-numeri input").forEach((input) => {
+          input.disabled = true;
+        });
+        document.getElementById("numeri_casuali").disabled = true;
+        document.getElementById("invia_cartella").disabled = true;
+
+        // Rendi la griglia interattiva dal punto di vista del CSS ed attiva il click
+        const griglia = document.getElementById("griglia-tabella");
+        griglia.classList.add("attiva");
+
+        document.querySelectorAll(".cartella-griglia > div").forEach((casella) => {
+          casella.addEventListener("click", () => estratto(casella));
+        });
+
+        // Rendi visibile il banner di gioco in corso
+        document.getElementById("sezione-step1").classList.add("disabled");
+      }
+
+      let cartella_salvata = Store.get(game);
+      document.addEventListener("DOMContentLoaded", function () {
+        document.getElementById("numeri_casuali").addEventListener("click", completa_cartella);
+        document.getElementById("invia_cartella").addEventListener("click", inviaCartella);
+        document.querySelectorAll(".scelta-numeri input").forEach((numero) => {
+          numero.addEventListener("blur", () => checkValues(numero));
+        });
+
+        // Listener per abilitare/disabilitare dinamicamente il tasto "Gioca la cartella"
+        const inputNome = document.getElementById("cartiglio");
+        inputNome.addEventListener("input", function () {
+          const btnInvia = document.getElementById("invia_cartella");
+          if (this.value.trim() !== "" && Object.keys(map_cartella).length > 0) {
+            btnInvia.disabled = false;
+          } else {
+            btnInvia.disabled = true;
+          }
+        });
+
+        erroriContainer = document.getElementById("errori-container");
+        if (cartella_salvata) {
+          let dict_cartella_salvata = JSON.parse(cartella_salvata);
+          numeri_inviati = dict_cartella_salvata["Numbers Selected"];
+          document.getElementById("cartiglio").value = dict_cartella_salvata["Player"];
+          for (const riga of numeri_inviati.split("|")) {
+            for (const numero of riga.split(",")) {
+              controlla_se_permesso(numero);
+            }
+          }
+          for (const [index, stringaNumeri] of dict_cartella_salvata["scelta_utente"].entries()) {
+            numero = document.getElementById("n_" + index);
+            numero.value = stringaNumeri;
+            const parentDiv = numero.parentElement;
+            parentDiv.classList.add("giocato");
+          }
+          disponi_numeri_in_cartella();
+          // Attiva la visualizzazione dello step 2 prima di bloccare tutto
+          document.getElementById("sezione-step2").classList.remove("disabled");
+          imposta_cartella_giocata();
+        }
+      });
+      function checkValues(numero) {
+        const parentDiv = numero.parentElement;
+        let textContent = controlla_se_permesso(numero);
+        if (numero.value.trim() == "") {
+          parentDiv.classList.remove("giocato");
+          parentDiv.classList.remove("errore");
+          erroriContainer.textContent = "";
+        } else {
+          if (textContent) {
+            parentDiv.classList.add("errore");
+            parentDiv.classList.remove("giocato");
+            erroriContainer.textContent = textContent;
+            numero.focus();
+            numero.select();
+            return;
+          } else {
+            // tutto bene
+            parentDiv.classList.remove("errore");
+            parentDiv.classList.add("giocato");
+            erroriContainer.textContent = "";
+          }
+        }
+      }
+      function controlla_se_permesso(ctrl_numero) {
+        let num;
+        if (ctrl_numero instanceof HTMLElement) {
+          num = parseInt(ctrl_numero.value);
+          if (isNaN(ctrl_numero.value)) {
+            return "❌ " + ctrl_numero.value + " non è un numero valido!";
+          }
+          aggiorna_map_cartella(ctrl_numero);
+        } else {
+          num = ctrl_numero;
+        }
+
+        let chiave = colonna(num);
+        let nuova_colonna = 0;
+        if (!map_cartella[chiave]) {
+          map_cartella[chiave] = [];
+          nuova_colonna = 1;
+        }
+        if (num < 1 || num > 90) {
+          return "❌ Il numero " + num + " non è valido! (1-90)";
+        }
+        if (map_cartella[chiave].includes(num)) {
+          return "❌ Il numero " + num + " è già stato scelto!";
+        } else if (map_cartella[chiave].length >= 3) {
+          return (
+            "❌ Non puoi giocare il numero " +
+            num +
+            ", hai già scelto i numeri " +
+            map_cartella[chiave].join(", ") +
+            "!"
+          );
+        } else if (colonne_giocate(map_cartella) + mancanti + nuova_colonna <= 9) {
+          return "❌ Ci deve essere almeno un numero in ogni colonna della cartella!";
+        }
+        map_cartella[chiave].push(num);
+        return "";
+      }
+      function colonne_giocate(map_cartella) {
+        let count = 0;
+        for (let chiave in map_cartella) {
+          if (map_cartella[chiave].length > 0) {
+            count++;
+          }
+        }
+        return count;
+      }
+      function numeri_giocati(map_cartella) {
+        let count = 0;
+        for (let chiave in map_cartella) {
+          count += map_cartella[chiave].length;
+        }
+        return count;
+      }
+
+      function aggiorna_map_cartella(ctrl_numero) {
+        map_cartella = {};
+        row_scelti = [];
+        contatore_riga = [
+          ["0", []],
+          ["1", []],
+          ["2", []],
+        ];
+        mancanti = 15;
+        document.querySelectorAll(".scelta-numeri input").forEach((numero) => {
+          if (ctrl_numero instanceof HTMLElement) {
+            if (numero.id == ctrl_numero.id) {
+              return;
+            }
+          }
+          if (numero.value == "") {
+            return;
+          }
+          let chiave = colonna(numero.value);
+          if (!map_cartella[chiave]) {
+            map_cartella[chiave] = [];
+          }
+          map_cartella[chiave].push(parseInt(numero.value));
+          row_scelti.push(parseInt(numero.value));
+          mancanti--;
+        });
+      }
+
+      function completa_cartella() {
+        aggiorna_map_cartella();
+        mancanti = 15 - numeri_giocati(map_cartella);
+
+        while (mancanti > 0) {
+          let num = Math.floor(Math.random() * 90) + 1;
+          if (controlla_se_permesso(num) === "") {
+            mancanti--;
+          }
+        }
+        disponi_numeri_in_cartella();
+
+        // Sblocca visivamente la sezione della cartella (Step 2)
+        document.getElementById("sezione-step2").classList.remove("disabled");
+
+        // Forza il trigger di validazione sul nome se l'utente lo aveva già compilato in precedenza
+        document.getElementById("cartiglio").dispatchEvent(new Event("input"));
+      }
+
+      function disponi_numeri_in_cartella() {
+        contatore_riga = [
+          ["0", []],
+          ["1", []],
+          ["2", []],
+        ];
+        var campi_da_pulire = document.querySelectorAll(".cartella-griglia div");
+        for (let campo of campi_da_pulire) {
+          campo.innerHTML = "";
+        }
+        for (let chiave in map_cartella) {
+          let righe_scelte = scegli_righe(contatore_riga, map_cartella[chiave].length);
+          map_cartella[chiave].sort();
+          for (let i = 0; i < map_cartella[chiave].length; i++) {
+            let id = righe_scelte[i][0] + chiave;
+            campo = document.getElementById(id);
+            campo.innerHTML = map_cartella[chiave][i];
+            contatore_riga[Number(righe_scelte[i][0])][1].push(map_cartella[chiave][i]);
+          }
+        }
+      }
+      function colonna(num) {
+        if (parseInt(num) == 90) {
+          return "8";
+        } else {
+          return String(Math.floor(parseInt(num) / 10));
+        }
+      }
+
+      function scegli_righe(array_riga, n) {
+        return [...array_riga]
+          .sort((a, b) => a[1].length - b[1].length)
+          .slice(0, n)
+          .sort((a, b) => a[0] - b[0]);
+      }
+
+      async function inviaCartella() {
+        if (!map_cartella || Object.keys(map_cartella).length === 0) {
+          alert("Genera la cartella per giocare!");
+          return;
+        }
+
+        if (document.getElementById("cartiglio").value.trim() === "") {
+          alert("Inserisci il tuo nome per giocare!");
+          return;
+        }
+
+        const numeri = Object.values(contatore_riga)
+          .map((arr) => arr[1].join(","))
+          .join("|");
+
+        try {
+          datiDaInviare = [
+            {
+              Player: document.getElementById("cartiglio").value.trim(),
+              "Numbers Selected": numeri,
+              Game: game,
+            },
+          ];
+          body_inviato = JSON.stringify(datiDaInviare);
+          url =
+            "https://v1.nocodeapi.com/elianozeta/airtable/AxzRUvUeDYyxtZmo?tableName=tblqkVkKwVVCJIvYS";
+          const res = await fetch(url, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: body_inviato,
+          });
+
+          if (res.ok) {
+            const data = await res.json();
+            // alert("✅ Riga inserita! ID: " + data[0].id);
+            alert(
+              "🎉 Cartella confermata e bloccata con successo! Tocca i numeri sulla cartella mano a mano che vengono estratti.",
+            );
+            Store.set(
+              game,
+              JSON.stringify({
+                Player: document.getElementById("cartiglio").value.trim(),
+                "Numbers Selected": numeri,
+                scelta_utente: row_scelti,
+              }),
+              "session",
+            );
+            imposta_cartella_giocata();
+          } else {
+            const err = await res.json();
+            alert("❌ Errore: " + (err.error?.message || JSON.stringify(err)));
+          }
+        } catch (e) {
+          alert("❌ Errore di rete: " + e.message);
+        }
+      }
+      function estratto(elemento) {
+        if (elemento.innerHTML.trim() === "") {
+          return;
+        }
+        if (elemento.classList.contains("numero-estratto")) {
+          elemento.classList.remove("numero-estratto");
+        } else {
+          elemento.classList.add("numero-estratto");
+        }
+      }
+    </script>
+  </body>
+</html>
