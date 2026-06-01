@@ -2,6 +2,10 @@
   <head>
     <meta charset="UTF-8" />
     <style>
+      :root {
+        --colore-chiaro: Lightgray;
+        --colore-scuro: FireBrick;
+      }
       body {
         font-family: "Libre Bodoni", serif;
         font-size: 16px;
@@ -100,7 +104,7 @@
         background-color: #f5f1e4;
         box-shadow:
           inset 0 2px 4px rgba(0, 0, 0, 0.2),
-          /* ombra interna */ inset 0 -2px 3px rgba(255, 255, 255, 0.6); /* luce interna */
+          inset 0 -2px 3px rgba(255, 255, 255, 0.6);
       }
 
       .numeri input {
@@ -126,6 +130,10 @@
         font-size: 0.9em;
         margin-top: -5px;
         height: 20px;
+      }
+      .numero-estratto {
+        animation: shadowcolor 1s infinite;
+        background-image: radial-gradient(white, var(--colore-chiaro), var(--colore-scuro));
       }
     </style>
   </head>
@@ -212,7 +220,6 @@
       };
       const params = new URLSearchParams(window.location.search);
       const game = params.get("game");
-      // alert("Game: " + game);
       let erroriContainer;
       let tutte_le_decine = false;
       var map_cartella = {};
@@ -230,9 +237,11 @@
         });
         document.getElementById("numeri_casuali").disabled = true;
         document.getElementById("invia_cartella").disabled = true;
+        document.querySelectorAll(".cartella-griglia > div").forEach((casella) => {
+          casella.addEventListener("click", () => estratto(casella));
+        });
       }
       let cartella_salvata = Store.get(game);
-      // alert("Cartella salvata: " + cartella_salvata);
       document.addEventListener("DOMContentLoaded", function () {
         document.getElementById("numeri_casuali").addEventListener("click", completa_cartella);
         document.getElementById("invia_cartella").addEventListener("click", inviaCartella);
@@ -368,14 +377,12 @@
 
       function completa_cartella() {
         // pulisco la cartella
-        // alert(completa_cartella);
         aggiorna_map_cartella();
-        numeri_inseriti = numeri_giocati(map_cartella);
+        mancanti = 15 - numeri_giocati(map_cartella);
 
-        while (numeri_inseriti < 15) {
+        while (mancanti > 0) {
           let num = Math.floor(Math.random() * 90) + 1;
           if (controlla_se_permesso(num) === "") {
-            numeri_inseriti++;
             mancanti--;
           }
         }
@@ -417,10 +424,6 @@
           .slice(0, n) // prende i primi n
           .sort((a, b) => a[0] - b[0]); // ordina per indice 0
       }
-      // const AIRTABLE_TOKEN =
-      //   "patRlCoiJk7kdrjSg.4c5eb4753eae088ff9f89028a00eeaccb9f5513c1e87b396d1ef6f349f31924f";
-      // const BASE_ID = "app2o7kaTcpzSld1Z";
-      // const TABLE_ID = "tblqkVkKwVVCJIvYS";
 
       async function inviaCartella() {
         if (!map_cartella) {
@@ -438,21 +441,6 @@
           .join("|");
 
         try {
-          // const res = await fetch(`https://api.airtable.com/v0/${BASE_ID}/${TABLE_ID}`, {
-          //   method: "POST",
-          //   headers: {
-          //     Authorization: `Bearer ${AIRTABLE_TOKEN}`,
-          //     "Content-Type": "application/json",
-          //   },
-          //   body: JSON.stringify({
-          //     fields: {
-          //       Player: document.getElementById("cartiglio").value.trim(),
-          //       "Numbers Selected": numeri,
-          //       Game: "PARTITA_TEST",
-          //     },
-          //   }),
-          // });
-
           datiDaInviare = [
             {
               Player: document.getElementById("cartiglio").value.trim(),
@@ -464,11 +452,11 @@
           url =
             "https://v1.nocodeapi.com/elianozeta/airtable/AxzRUvUeDYyxtZmo?tableName=tblqkVkKwVVCJIvYS";
           const res = await fetch(url, {
-            method: "POST", // Specifichiamo che stiamo inserendo dati
+            method: "POST",
             headers: {
-              "Content-Type": "application/json", // Diciamo al server che stiamo inviando un JSON
+              "Content-Type": "application/json",
             },
-            body: body_inviato, // Trasformiamo l'array di oggetti in testo JSON
+            body: body_inviato,
           });
 
           if (res.ok) {
@@ -487,10 +475,19 @@
           } else {
             const err = await res.json();
             alert("❌ Errore: " + (err.error?.message || JSON.stringify(err)));
-            // status.textContent = "❌ Errore: " + (err.error?.message || JSON.stringify(err));
           }
         } catch (e) {
           alert("❌ Errore di rete: " + e.message);
+        }
+      }
+      function estratto(elemento) {
+        if (elemento.innerHTML.trim() === "") {
+          return;
+        }
+        if (elemento.classList.contains("numero-estratto")) {
+          elemento.classList.remove("numero-estratto");
+        } else {
+          elemento.classList.add("numero-estratto");
         }
       }
     </script>

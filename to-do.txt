@@ -6,9 +6,9 @@ Fix:
 ++ evitare numeri doppi alla generazione automatica dei numeri
 ++ generare nuovi numeri ogni volta che si preme il tasto di popolamento della cartella
 ++ eliminare token dal codice sorgente pubblico https://g.co/gemini/share/7d0ea7f389a5
-- verificare se servono entrambe le variabili "numeri_inseriti" e "mancanti"
+++ verificare se servono entrambe le variabili "numeri_inseriti" e "mancanti"
 
 Features:
 - UX e Grafica bottoni 
-- colorare i numeri estratti al click sul numero
+++ colorare i numeri estratti al click/tap sul numero
 ++ fissare i numeri giocati in cartella dopo aver inviato la cartella
