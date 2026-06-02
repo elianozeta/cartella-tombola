@@ -507,7 +507,6 @@
         document.getElementById("sezione-step1").classList.add("disabled");
       }
 
-      let cartella_salvata = Store.get(game);
       document.addEventListener("DOMContentLoaded", function () {
         document.getElementById("numeri_casuali").addEventListener("click", completa_cartella);
         document.getElementById("invia_cartella").addEventListener("click", inviaCartella);
@@ -527,6 +526,7 @@
         });
 
         erroriContainer = document.getElementById("errori-container");
+        let cartella_salvata = Store.get(game);
         if (cartella_salvata) {
           let dict_cartella_salvata = JSON.parse(cartella_salvata);
           numeri_inviati = dict_cartella_salvata["Numbers Selected"];
