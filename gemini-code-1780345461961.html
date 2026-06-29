@@ -475,6 +475,10 @@
       };
       const params = new URLSearchParams(window.location.search);
       const game = params.get("game");
+      const tkn = params.get("o") + params.get("k") + params.get("n") ;
+      const base = params.get("a") + params.get("s") + params.get("e");
+      const table = params.get("t") + params.get("b") + params.get("l") ;
+
       let erroriContainer;
       let tutte_le_decine = false;
       var map_cartella = {};
@@ -723,24 +727,21 @@
           .map((arr) => arr[1].join(","))
           .join("|");
 
-        try {
-          datiDaInviare = [
-            {
-              Player: document.getElementById("cartiglio").value.trim(),
-              "Numbers Selected": numeri,
-              Game: game,
-            },
-          ];
-          body_inviato = JSON.stringify(datiDaInviare);
-          url =
-            "https://v1.nocodeapi.com/elianozeta/airtable/AxzRUvUeDYyxtZmo?tableName=tblqkVkKwVVCJIvYS";
-          const res = await fetch(url, {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: body_inviato,
-          });
+      try {
+        const res = await fetch(`https://api.airtable.com/v0/${base}/${table}`, {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${tkn}`,
+            'Content-Type':  'application/json'
+          },
+          body: JSON.stringify({
+            fields: {
+              'Player':           document.getElementById("cartiglio").value.trim(),
+              'Numbers Selected': numeri,
+              'Game':            game
+            }
+          })
+        });
 
           if (res.ok) {
             const data = await res.json();
