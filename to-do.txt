@@ -13,3 +13,4 @@ Features:
 ++ colorare i numeri estratti al click/tap sul numero
 ++ fissare i numeri giocati in cartella dopo aver inviato la cartella
 - controllo premi aggiudicati (N.B.: la cartella dovrebbe sapere quali premi sono in palio per la partita corrente)
+++ parametri token, base e table passati come parametri offuscati nel link (non serve nocodeapi)
