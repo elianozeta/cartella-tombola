@@ -243,6 +243,7 @@
         align-items: center;
         border-radius: 45px;
         aspect-ratio: 1 / 1;
+        flex: 0 0 60px;
         border-style: solid;
         border-width: 1px;
         border-color: silver;
@@ -270,7 +271,12 @@
         font-style: italic;
         font-weight: bold;
         background-color: inherit;
-        width: 75%;
+        width: 100%;
+        max-width: 48px;
+        min-width: 0;
+        box-sizing: border-box;
+        padding: 0;
+        font-size: 1.25em;
       }
 
       .numeri input:disabled {
@@ -375,8 +381,8 @@
         >
       </div>
       <p class="step-desc">
-        Digita fino a 15 numeri preferiti (da 1 a 90) nelle caselle circolari. I restanti verranno
-        scelti casualmente dal sistema.
+        Digita fino a 15 numeri preferiti (da 1 a 90) nelle caselle circolari. Se ne scegli meno,
+        quelli che mancano verranno inseriti dalla sorte.
       </p>
 
       <fieldset>
